@@ -38,17 +38,24 @@ const getProjects = async () => {
   const { results: projectList } = await notion.databases.query({
     database_id: process.env.PROJECT_DATABASE_ID,
   });
-  const projects = projectList.map((project) => {
-    const projectData = {
-      id: project.id,
-      image: project.properties.Thumbnail.files[0].file.url,
-      name: project.properties.Name.title[0].text.content,
-      tags: project.properties.Tags.multi_select.map((tag) => tag.name),
-      repoLink: project.properties["Repository Link"].rich_text[0].text.content,
-      siteLink: project.properties["Website Link"].rich_text[0].text.content,
-    };
-    return projectData;
-  });
+  const projects = projectList
+    .filter((project) => !project.properties["Hidden"].checkbox)
+    .map((project) => {
+      const projectData = {
+        id: project.id,
+        image: project.properties.Thumbnail.files[0]?.file.url,
+        name: project.properties.Name.title[0]?.text.content,
+        tags: project.properties.Tags.multi_select.map((tag) => tag.name),
+        repoLink:
+          project.properties["Repository Link"].rich_text[0]?.text.content,
+        siteLink: project.properties["Website Link"].rich_text[0]?.text.content,
+        description:
+          project.properties["Description"].rich_text[0]?.text.content.split(
+            "\n"
+          ),
+      };
+      return projectData;
+    });
   return projects;
 };
 
